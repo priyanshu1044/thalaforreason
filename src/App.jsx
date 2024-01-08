@@ -20,7 +20,7 @@ function App() {
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('http://localhost:5000/check', { input });
+      const response = await axios.post('https://thalaforreason-vsu1.onrender.com/check', { input });
       setResult(response.data.message);
 
       // Fetch updated data immediately after submitting
@@ -47,7 +47,7 @@ function App() {
 
   const fetchThalaData = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/getThalaData');
+      const response = await axios.get('https://thalaforreason-vsu1.onrender.com/getThalaData');
       setThalaData(response.data.thalaData);
     } catch (error) {
       console.error(error);
