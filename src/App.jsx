@@ -84,7 +84,7 @@ function App() {
   };
 
   const getShareableUrl = () => {
-    return `${window.location.origin}/result?result=${encodeURIComponent(result)}`;
+    return `${window.location.origin}`;
   };
 
   return (
