@@ -1,28 +1,45 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DarkModeTwoToneIcon from '@mui/icons-material/DarkModeTwoTone';
-// import './App.css';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
 
 function App() {
   const [input, setInput] = useState('');
   const [result, setResult] = useState('');
   const [thalaData, setThalaData] = useState([]);
-  const [theme, setTheme] = useState('dark'); // 'light' or 'dark'
+  const [theme, setTheme] = useState('dark');
+  const [audioSrc, setAudioSrc] = useState('');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopySuccess = () => {
+    setCopied(true);
+    setTimeout(() => {
+      setCopied(false);
+    }, 3000);
+  };
 
   const handleSubmit = async () => {
     try {
-      const response = await axios.post('https://thalaforreason-vsu1.onrender.com/check', { input });
+      const response = await axios.post('http://localhost:5000/check', { input });
       setResult(response.data.message);
 
       // Fetch updated data immediately after submitting
       fetchThalaData();
+
+      // Set audio source based on the condition
+      setAudioSrc(response.data.message.includes('=') ? '/thala.mp3' : '/moye-moye.mp3');
     } catch (error) {
       console.error(error);
     }
   };
 
   const handleKeyPress = (e) => {
-    // Check if the pressed key is Enter (key code 13)
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
+  const handleKeyUp = (e) => {
     if (e.key === 'Enter') {
       handleSubmit();
     }
@@ -30,7 +47,7 @@ function App() {
 
   const fetchThalaData = async () => {
     try {
-      const response = await axios.get('https://thalaforreason-vsu1.onrender.com/getThalaData');
+      const response = await axios.get('http://localhost:5000/getThalaData');
       setThalaData(response.data.thalaData);
     } catch (error) {
       console.error(error);
@@ -39,14 +56,40 @@ function App() {
 
   useEffect(() => {
     fetchThalaData();
-  }, []); // Fetch data on component mount
+  }, []);
+
+  useEffect(() => {
+    const audioElement = new Audio(audioSrc);
+
+    const playAudio = () => {
+      if (audioElement.readyState >= 2) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+      }
+      audioElement.play();
+    };
+
+    if (input && (audioSrc === '/thala.mp3' || audioSrc === '/moye-moye.mp3')) {
+      playAudio();
+    }
+
+    return () => {
+      audioElement.pause();
+      audioElement.src = '';
+    };
+  }, [audioSrc]);
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    setTheme((prevTheme) => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
+
+  const getShareableUrl = () => {
+    return `${window.location.origin}/result?result=${encodeURIComponent(result)}`;
   };
 
   return (
-    <div className={`flex items-center justify-center h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+    <div className={`flex flex-col items-center justify-center h-screen ${theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-black'}`}>
+      
       <div className={`p-8 rounded shadow-md w-full max-w-lg ${theme === 'dark' ? 'bg-gray-800' : 'bg-white'}`}>
         <div className='fixed top-2 right-2'>
           <button
@@ -62,22 +105,31 @@ function App() {
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Enter a string or number"
+            onKeyUp={handleKeyUp}
+            placeholder="Ready for Thala magic? Input your string or number."
             className={`px-4 py-2 border rounded w-full focus:outline-none ${theme === 'dark' ? 'border-gray-700 text-black' : 'border-gray-300 text-black'}`}
           />
           <button
             className={`bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-700 focus:outline-none ml-4 ${theme === 'dark' ? 'bg-blue-800' : ''}`}
             onClick={handleSubmit}
           >
-            Submit
+            Check
           </button>
         </div>
         {result && (
-          <p className={`text-lg ${result.includes('Input does not meet the criteria') ? 'text-red-500' : 'text-green-500'}`}>
-            {result}
-          </p>
+          <div>
+            <p className={`text-lg ${result.includes('Input is not related to the number 7') ? 'text-red-500' : 'text-green-500'}`}>
+              {result}
+            </p>
+            {/* Share Button */}
+            <CopyToClipboard text={getShareableUrl()} onCopy={handleCopySuccess}>
+              <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-700 focus:outline-none mt-4">
+                {copied ? 'Copied!' : 'Share Result'}
+              </button>
+            </CopyToClipboard>
+          </div>
         )}
+
         <div className="mt-8">
           <h2 className={`text-2xl font-bold mb-4 ${theme === 'dark' ? 'text-yellow-300' : 'text-gray-900'}`}>💛 Thala For A Reason 💛</h2>
           <div className="table-container max-h-96 overflow-y-auto">
@@ -100,6 +152,14 @@ function App() {
           </div>
         </div>
       </div>
+      {/* <div className="mt-8 text-center text-gray-500">
+        <p>Priyanshu Patel</p>
+        <p>
+          <a href="https://github.com/priyanshu1044/" target="_blank" rel="noopener noreferrer">
+            GitHub
+          </a>
+        </p>
+      </div> */}
     </div>
   );
 }

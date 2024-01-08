@@ -13,7 +13,7 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
-mongoose.connect(process.env.MONGO_URI, {
+mongoose.connect("mongodb+srv://priyanshu:priyanshu1234@cluster0.svwgo43.mongodb.net/thala_db", {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 });
@@ -53,16 +53,17 @@ app.post('/check', async (req, res) => {
     // Determine the final result based on the conditions
     let resultMessage = '';
     let resultStoredMessage = '';
+
     if (sum === 7) {
       const sequence = inputUpperCase.toString().split('').join('+');
       resultMessage = `${sequence}=${sum} 💛 Thala For A Reason 💛`;
       resultStoredMessage = `${sequence}=${sum}`;
     } else if (has7Characters) {
-        const sequence = inputUpperCase.toString().split('').join('+');
+      const sequence = inputUpperCase.toString().split('').join('+');
       resultMessage = `${sequence}= 7 💛 Thala For A Reason 💛`;
       resultStoredMessage = `${sequence}= 7`;
-    } else {
-      resultMessage = 'Input does not meet the criteria';
+    }else {
+      resultMessage = 'Input is not related to the number 7';
     }
   
     // Check if the input (in uppercase) already exists in the database
